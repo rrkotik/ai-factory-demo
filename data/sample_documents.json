@@ -1,0 +1,16 @@
+{
+  "documents": [
+    {
+      "title": "PostgreSQL basics",
+      "content": "PostgreSQL is a relational database. It supports SQL queries, transactions, indexes, and JSON data."
+    },
+    {
+      "title": "Weaviate vector search",
+      "content": "Weaviate stores vector embeddings and retrieves similar documents using nearest-neighbor search."
+    },
+    {
+      "title": "FastAPI applications",
+      "content": "FastAPI is a Python framework for building HTTP APIs with request validation and automatic OpenAPI documentation."
+    }
+  ]
+}

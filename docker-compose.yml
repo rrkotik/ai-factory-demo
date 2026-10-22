@@ -1,0 +1,103 @@
+name: interview-starter
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-interview}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-interview}
+      POSTGRES_DB: ${POSTGRES_DB:-interview}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.40.1
+    command: ["--host", "0.0.0.0", "--port", "8080", "--scheme", "http"]
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      DEFAULT_VECTORIZER_MODULE: "none"
+      ENABLE_API_BASED_MODULES: "false"
+      AUTOSCHEMA_ENABLED: "false"
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      QUERY_DEFAULTS_LIMIT: "20"
+      CLUSTER_HOSTNAME: node1
+      DISABLE_TELEMETRY: "true"
+    ports:
+      - "127.0.0.1:${WEAVIATE_HTTP_PORT:-8080}:8080"
+      - "127.0.0.1:${WEAVIATE_GRPC_PORT:-50051}:50051"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+
+  api:
+    build: .
+    command:
+      - uv
+      - run
+      - --no-sync
+      - uvicorn
+      - app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --reload
+      - --reload-dir
+      - /app/app
+      - --reload-dir
+      - /app/data
+      - --reload-include
+      - "*.json"
+      - --log-level
+      - debug
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-interview}:${POSTGRES_PASSWORD:-interview}@postgres:5432/${POSTGRES_DB:-interview}
+      WEAVIATE_HOST: weaviate
+      WEAVIATE_HTTP_PORT: "8080"
+      WEAVIATE_GRPC_PORT: "50051"
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-local}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      SEED_ON_STARTUP: ${SEED_ON_STARTUP:-true}
+      # Poll bind mounts reliably across Docker Desktop and Linux.
+      WATCHFILES_FORCE_POLLING: "true"
+      # Optional workaround for old Docker Desktop ARM CPU detection; unset normally.
+      OPENSSL_armcap:
+    volumes:
+      # Mount source only; keep the container's Linux .venv from the image.
+      - ./app:/app/app:ro
+      - ./data:/app/data:ro
+      - ./tests:/app/tests:ro
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      weaviate:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=5)"
+      interval: 10s
+      timeout: 6s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  postgres_data:
+  weaviate_data:
