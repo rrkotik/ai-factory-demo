@@ -1,0 +1,82 @@
+name: ai-factory-demo
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: interview
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: interview
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U interview -d interview"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [backend]
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.40.1
+    restart: unless-stopped
+    command: [--host, 0.0.0.0, --port, "8080", --scheme, http]
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      DEFAULT_VECTORIZER_MODULE: none
+      ENABLE_API_BASED_MODULES: "false"
+      AUTOSCHEMA_ENABLED: "false"
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      QUERY_DEFAULTS_LIMIT: "20"
+      CLUSTER_HOSTNAME: node1
+      DISABLE_TELEMETRY: "true"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    healthcheck:
+      test: [CMD, wget, --spider, -q, "http://localhost:8080/v1/.well-known/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+    networks: [backend]
+
+  api:
+    build:
+      context: ..
+    restart: unless-stopped
+    command: [uv, run, --no-sync, uvicorn, "app.main:app", --host, 0.0.0.0, --port, "8000", --limit-concurrency, "16"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://interview:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/interview
+      WEAVIATE_HOST: weaviate
+      WEAVIATE_HTTP_PORT: "8080"
+      WEAVIATE_GRPC_PORT: "50051"
+      EMBEDDING_PROVIDER: local
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Set OPENAI_API_KEY}
+      OPENAI_PRODUCT_MODEL: ${OPENAI_PRODUCT_MODEL:-gpt-6-sol}
+      OPENAI_PRODUCT_REASONING_EFFORT: ${OPENAI_PRODUCT_REASONING_EFFORT:-low}
+      SEED_ON_STARTUP: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      weaviate:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=5)"]
+      interval: 10s
+      timeout: 6s
+      retries: 12
+      start_period: 30s
+    networks:
+      backend:
+      portal:
+        aliases: [ai-factory-demo-api]
+
+networks:
+  backend:
+  portal:
+    external: true
+    name: portal_default
+
+volumes:
+  postgres_data:
+  weaviate_data:

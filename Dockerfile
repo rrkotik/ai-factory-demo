@@ -19,6 +19,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY app ./app
 COPY data ./data
+COPY assets ./assets
 COPY tests ./tests
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked \

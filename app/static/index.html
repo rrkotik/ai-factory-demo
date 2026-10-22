@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5f0">
+  <title>Product listing verification endpoint · AI Factory</title>
+  <link rel="stylesheet" href="static/demo.css">
+  <script src="static/demo.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">a/f</span> AI FACTORY <span class="brand-label">DEMO</span></a><span class="top-note">Product listing verification</span></header>
+  <main>
+    <section class="intro">
+      <h1>Product listing verification endpoint</h1>
+      <p class="lede">Verify product text, image safety, and relevance. Run an example or submit your own listing.</p>
+      <div class="pipeline" aria-label="Verification steps"><span><b>01</b> Basic checks</span><i aria-hidden="true">→</i><span><b>02</b> AI review</span><i aria-hidden="true">→</i><span><b>03</b> Clear decision</span></div>
+    </section>
+
+    <section class="custom-section" aria-labelledby="custom-heading">
+      <details class="case custom-card" id="custom-case">
+        <summary><span class="case-icon custom-icon" aria-hidden="true">+</span><span class="case-heading"><strong id="custom-heading">Run your case</strong><span>Your product, your images. Same checks.</span></span><span class="expand-icon" aria-hidden="true">+</span></summary>
+        <div class="case-body">
+          <form id="custom-form">
+            <fieldset id="custom-fields">
+              <div class="field-heading"><label for="title">Product title</label><span id="title-count">0 / 200</span></div>
+              <input id="title" name="title" type="text" maxlength="200" placeholder="e.g. Blue cotton crew-neck T-shirt" required>
+              <div class="field-heading"><label for="description">Product description</label><span id="description-count">0 / 4,000</span></div>
+              <textarea id="description" name="description" maxlength="4000" rows="4" placeholder="Describe the product, its colour, material, and key features…" required></textarea>
+              <div class="field-heading"><label for="image-files">Product images</label><span id="image-count">0 / 20</span></div>
+              <div id="dropzone" class="dropzone">
+                <span class="upload-icon" aria-hidden="true">↑</span><strong>Drop your images here</strong>
+                <span>or <label class="file-picker" for="image-files">browse files<input id="image-files" type="file" accept="image/jpeg,image/png,image/webp" multiple></label></span>
+                <small>JPG, PNG or WebP · Up to 5 MiB each · 20 MiB total<br>1–20 images · Each side 256–4,096 px</small>
+              </div>
+              <div id="upload-error" class="upload-error" role="alert"></div>
+              <div id="previews" class="previews"></div>
+            </fieldset>
+            <div class="run-row"><button type="submit" class="run-button" id="custom-run">Run verification <span aria-hidden="true">↗</span></button><span class="run-note">Images and text are sent to OpenAI for review.</span></div>
+          </form>
+          <div class="result" id="custom-result" role="status" aria-live="polite" hidden></div>
+        </div>
+      </details>
+    </section>
+    <section aria-labelledby="examples-title">
+      <div class="section-heading"><h2 id="examples-title">Explore the examples</h2><span>03 CASES</span></div>
+      <p class="section-copy">Each example runs the real verifier. Expand a case to inspect its listing and try it.</p>
+      <div id="cases-loading" role="status">Loading examples…</div>
+      <div class="case-group"><h3 class="group-label"><span class="dot orange"></span> FAILURE <span>02</span></h3><div id="failure-cases"></div></div>
+      <div class="case-group"><h3 class="group-label"><span class="dot green"></span> SUCCESS <span>01</span></h3><div id="success-cases"></div></div>
+    </section>
+    <aside class="how-it-works"><div><span class="eyebrow">WHAT GETS CHECKED</span><h2>One listing.<br>Three perspectives.</h2></div><div class="checks"><p><b>Image safety</b><span>Review each image for sexual content and violence.</span></p><p><b>Text safety & consistency</b><span>Review the language and whether the title matches the description.</span></p><p><b>Image–text relevance</b><span>Check that every image depicts the product described.</span></p></div></aside>
+    <p class="fine-print">Basic text, vocabulary, file validity, size, and image quality checks run first. If they pass, three AI reviews run in parallel. AI decisions and wording can vary between runs.</p>
+  </main>
+  <footer><span>AI FACTORY <span class="footer-separator">/</span> LISTING LAB</span><span>Example photo: <a href="https://commons.wikimedia.org/wiki/File:Ironed_blue_T-shirt_(001).JPG" target="_blank" rel="noopener noreferrer">Juan de Vojníkov</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a></span></footer>
+  <template id="case-template">
+    <details class="case">
+      <summary><span class="case-icon" aria-hidden="true"></span><span class="case-heading"><strong class="case-name"></strong><span class="case-subtitle"></span></span><span class="expected-badge"></span><span class="expand-icon" aria-hidden="true">+</span></summary>
+      <div class="case-body">
+        <div class="listing"><div class="listing-image"><img loading="lazy" alt="Blue crew-neck T-shirt on a hanger"></div><div class="listing-copy"><span class="field-label">PRODUCT TITLE</span><h4 class="listing-title"></h4><span class="field-label">DESCRIPTION</span><p class="listing-description"></p></div></div>
+        <div class="run-row"><button type="button" class="run-button">Run verification <span aria-hidden="true">↗</span></button><span class="run-note">Live result · No saved responses</span></div>
+        <div class="result" role="status" aria-live="polite" hidden></div>
+      </div>
+    </details>
+  </template>
+</body>
+</html>

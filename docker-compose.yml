@@ -81,6 +81,7 @@ services:
       # Mount source only; keep the container's Linux .venv from the image.
       - ./app:/app/app:ro
       - ./data:/app/data:ro
+      - ./assets:/app/assets:ro
       - ./tests:/app/tests:ro
     ports:
       - "127.0.0.1:${API_PORT:-8000}:8000"

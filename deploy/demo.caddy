@@ -1,0 +1,20 @@
+# Import inside the existing bare-domain site, before its fallback redirect.
+redir /ai-factory-demo /ai-factory-demo/ 308
+handle_path /ai-factory-demo/* {
+    request_body {
+        max_size 32MB
+    }
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        Content-Security-Policy "default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+        -Server
+    }
+    @demo path / /static/* /demo/cases /demo/cases/* /products/verify
+    handle @demo {
+        reverse_proxy ai-factory-demo-api:8000
+    }
+    handle {
+        respond "Not found" 404
+    }
+}

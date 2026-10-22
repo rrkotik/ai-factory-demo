@@ -174,3 +174,46 @@ Run `make check` for offline tests, including actual SDK calls against HTTP
 transport stubs, and `make integration` for stack checks. No live OpenAI calls are
 needed for verification; use `EMBEDDING_PROVIDER=local OPENAI_API_KEY= make integration`
 to keep startup and the integration checks credential-free.
+# Browser demo and server deployment
+
+The API root (`http://localhost:8000/`, or your configured `API_PORT`) serves the
+product verification demo. Expand **Success 1**, **Failure 1**, or **Failure 2**
+to inspect and run the corresponding fixture from `assets/`. **Run your case**
+accepts a title, description, and multiple images through file selection or drag
+and drop. Results show the live approved/rejected decision, rejection comments,
+elapsed time, and JSON response. Requests may incur OpenAI API charges.
+
+The public deployment is at <https://romanshv.xyz/ai-factory-demo/> on `ssh nc`.
+`deploy/compose.yml` runs the complete stack without development reload or host
+ports. Caddy reaches the API through the existing `portal_default` Docker network;
+PostgreSQL and Weaviate use a separate backend network. Only the demo assets,
+example requests, and product verification endpoint are exposed by
+`deploy/demo.caddy`. Existing portal routes retain their original behavior.
+
+Server layout: `/srv/ai-factory-demo/releases/<release>/` for source,
+`/srv/ai-factory-demo/current` for the active release, and
+`/srv/ai-factory-demo/.env` (mode 600) for the server configuration. The deployment
+uses `OPENAI_API_KEY`, `OPENAI_PRODUCT_MODEL`, `OPENAI_PRODUCT_REASONING_EFFORT`,
+and a server-specific `POSTGRES_PASSWORD`. Keys are never included in browser
+assets or Docker build context. One API worker is used, with a concurrency bound
+of 16; this is a public demo, not a per-user usage or billing quota.
+
+After uploading a new release, run on the server:
+
+```bash
+cd /srv/ai-factory-demo/current
+docker compose --env-file /srv/ai-factory-demo/.env -f deploy/compose.yml up --build -d --wait --wait-timeout 240
+docker compose --env-file /srv/ai-factory-demo/.env -f deploy/compose.yml ps
+```
+
+The Caddy snippet is imported inside the bare-domain site. Its existing redirect
+to `home.romanshv.xyz` belongs in a fallback `handle` block, so it does not intercept
+demo requests. Validate and reload Caddy after editing its configuration:
+
+```bash
+docker exec caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+docker exec caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+```
+
+To roll back an application release, point `current` at the previous release and
+run the same Compose command. Keep the existing named volumes; do not delete them.

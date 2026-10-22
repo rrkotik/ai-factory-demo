@@ -8,9 +8,12 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.bootstrap import open_product_verifier, open_service
 from app.config import Settings
+from app.demo import STATIC
+from app.demo import router as demo_router
 from app.product_verification import ProductVerifier
 from app.request_limits import ProductBodyLimit
 from app.schemas import (
@@ -66,6 +69,8 @@ def create_app(
         lifespan=lifespan,
     )
     application.add_middleware(ProductBodyLimit)
+    application.include_router(demo_router)
+    application.mount("/static", StaticFiles(directory=STATIC), name="static")
 
     @application.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
