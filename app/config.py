@@ -5,6 +5,8 @@ from typing import Literal, Self
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.product_review import ReasoningEffort
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -16,6 +18,8 @@ class Settings(BaseSettings):
     embedding_provider: Literal["local", "openai"] = "local"
     openai_api_key: SecretStr = SecretStr("")
     openai_embedding_model: str = "text-embedding-3-small"
+    openai_product_model: str = Field(default="gpt-6-sol", min_length=1, pattern=r"\S")
+    openai_product_reasoning_effort: ReasoningEffort = "low"
     seed_on_startup: bool = True
     seed_path: Path = Path(__file__).resolve().parent.parent / "data" / "sample_documents.json"
 

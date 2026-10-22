@@ -10,11 +10,28 @@ from weaviate.classes.init import AdditionalConfig, Timeout
 from app.config import Settings
 from app.database import Base, PostgresRepository
 from app.embeddings import LocalEmbeddings, OpenAIEmbeddings
+from app.product_review import OpenAIProductReviewer
+from app.product_verification import ProductVerifier
 from app.schemas import IngestRequest
 from app.service import DocumentService
 from app.vector_store import WeaviateVectorStore
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def open_product_verifier(settings: Settings) -> Iterator[ProductVerifier]:
+    """Keep local checks available without a key; never approve without AI review."""
+    key = settings.openai_api_key.get_secret_value().strip()
+    if not key:
+        yield ProductVerifier()
+        return
+    with OpenAI(api_key=key, timeout=60.0, max_retries=1) as client:
+        yield ProductVerifier(
+            OpenAIProductReviewer(
+                client, settings.openai_product_model, settings.openai_product_reasoning_effort
+            )
+        )
 
 
 @contextmanager

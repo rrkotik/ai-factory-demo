@@ -70,6 +70,8 @@ services:
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-local}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      OPENAI_PRODUCT_MODEL: ${OPENAI_PRODUCT_MODEL:-gpt-6-sol}
+      OPENAI_PRODUCT_REASONING_EFFORT: ${OPENAI_PRODUCT_REASONING_EFFORT:-low}
       SEED_ON_STARTUP: ${SEED_ON_STARTUP:-true}
       # Poll bind mounts reliably across Docker Desktop and Linux.
       WATCHFILES_FORCE_POLLING: "true"

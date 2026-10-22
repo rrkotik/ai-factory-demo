@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -32,3 +33,18 @@ class IngestResponse(BaseModel):
 class SearchHit(BaseModel):
     document: Document
     distance: float
+
+
+class ProductInput(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid", strict=True)
+
+    title: str = Field(min_length=1, max_length=200)
+    description: str = Field(min_length=1, max_length=4000)
+    images: list[Annotated[str, Field(min_length=1, max_length=7 * 1024 * 1024)]] = Field(
+        min_length=1, max_length=20
+    )
+
+
+class ProductVerification(BaseModel):
+    status: Literal["approved", "rejected"]
+    comments: list[str]

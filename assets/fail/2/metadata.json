@@ -1,0 +1,24 @@
+{
+  "purpose": "OpenAI image-text relevance rejection: mug listing paired with a blue shirt photograph.",
+  "endpoint": "POST /products/verify",
+  "expected_http_status": 200,
+  "image_file": "image.jpg",
+  "image_dimensions": [
+    960,
+    1280
+  ],
+  "source": {
+    "title": "Ironed blue T-shirt (001).JPG",
+    "author": "Juan de Vojníkov",
+    "page": "https://commons.wikimedia.org/wiki/File:Ironed_blue_T-shirt_(001).JPG",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Ironed_blue_T-shirt_%28001%29.JPG/960px-Ironed_blue_T-shirt_%28001%29.JPG",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "changes": "Wikimedia 960px thumbnail; no further image edits. Base64 encoding in request.json."
+  },
+  "notes": "Synthetic listing text for this project; not an actual Amazon listing or Amazon approval. The photographer does not endorse the listing text. The image and its base64 copy retain CC BY-SA 3.0.",
+  "verification": "Deterministic checks passed. Live API returned HTTP 200 with rejection only from Image 1 relevance on 2026-10-22. Actual response saved in actual-response.json; no reviewer stub used.",
+  "expected_failure_check": "image_text_relevance",
+  "expected_response_notes": "Expected status is rejected with an Image 1 relevance comment. Comment wording is model-generated and may vary; expected-response.json is representative.",
+  "actual_http_status": 200
+}

@@ -1,0 +1,21 @@
+{
+  "purpose": "Expected approval after AI review.",
+  "endpoint": "POST /products/verify",
+  "expected_http_status": 200,
+  "image_file": "image.jpg",
+  "image_dimensions": [
+    960,
+    1280
+  ],
+  "source": {
+    "title": "Ironed blue T-shirt (001).JPG",
+    "author": "Juan de Vojníkov",
+    "page": "https://commons.wikimedia.org/wiki/File:Ironed_blue_T-shirt_(001).JPG",
+    "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Ironed_blue_T-shirt_%28001%29.JPG/960px-Ironed_blue_T-shirt_%28001%29.JPG",
+    "license": "CC BY-SA 3.0",
+    "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "changes": "Wikimedia 960px thumbnail; no further image edits. Base64 encoding in request.json."
+  },
+  "notes": "Synthetic listing text for this project; not an actual Amazon listing or Amazon approval. The photographer does not endorse the listing text. The image and its base64 copy retain CC BY-SA 3.0.",
+  "verification": "Local checks and HTTP response verified offline; success response uses a reviewer stub. No live AI review performed."
+}

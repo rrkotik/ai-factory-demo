@@ -73,3 +73,48 @@ def test_bootstrap_closes_vector_client_when_collection_initialization_fails(mon
     ):
         pytest.fail("Initialization must fail before yielding")
     assert events == ["close", "dispose"]
+
+
+def test_product_reviewer_closes_openai_client_on_error(monkeypatch):
+    import httpx
+    from openai import OpenAI
+
+    sdk = OpenAI(
+        api_key="test",
+        http_client=httpx.Client(
+            transport=httpx.MockTransport(
+                lambda request: pytest.fail("Startup must not call OpenAI")
+            )
+        ),
+    )
+    monkeypatch.setattr(bootstrap, "OpenAI", lambda **kwargs: sdk)
+    settings = Settings(
+        _env_file=None,
+        embedding_provider="local",
+        openai_api_key="test",
+        openai_product_model="configured-vision-model",
+        openai_product_reasoning_effort="medium",
+    )
+    with (
+        pytest.raises(RuntimeError, match="handler failed"),
+        bootstrap.open_product_verifier(settings) as verifier,
+    ):
+        assert verifier.reviewer is not None
+        assert verifier.reviewer.model == "configured-vision-model"
+        assert verifier.reviewer.reasoning_effort == "medium"
+        assert not sdk.is_closed()
+        raise RuntimeError("handler failed")
+    assert sdk.is_closed()
+
+
+def test_product_verifier_without_key_never_approves():
+    from app.schemas import ProductInput
+    from app.service import DependencyUnavailable
+    from tests.product_helpers import product_payload
+
+    settings = Settings(_env_file=None, embedding_provider="local", openai_api_key="")
+    with (
+        bootstrap.open_product_verifier(settings) as verifier,
+        pytest.raises(DependencyUnavailable),
+    ):
+        verifier.verify(ProductInput(**product_payload()))

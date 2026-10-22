@@ -49,3 +49,22 @@ def test_seed_ingestion_is_idempotent_and_searchable_in_real_stores():
         assert seed_titles <= found_titles
         assert len({hit["document"]["id"] for hit in hits}) == len(hits)
         assert hits[0]["document"]["title"] == "PostgreSQL basics"
+
+
+def test_product_rejection_is_available_without_an_openai_call():
+    with httpx.Client(
+        base_url=os.getenv("TEST_API_URL", "http://localhost:8000"), timeout=60
+    ) as client:
+        response = client.post(
+            "/products/verify",
+            json={
+                "title": "COCAINE",
+                "description": "Shit!",
+                "images": ["%%%"],
+            },
+        )
+        assert response.status_code == 200
+        result = response.json()
+        assert result["status"] == "rejected"
+        assert len(result["comments"]) == 3
+        assert client.post("/products/verify", json={}).status_code == 422

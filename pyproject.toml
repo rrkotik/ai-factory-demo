@@ -15,6 +15,7 @@ dependencies = [
     "weaviate-client>=4.16.4,<5",
     "openai>=2,<3",
     "pydantic-settings>=2.7,<3",
+    "pillow>=11,<13",
 ]
 
 [dependency-groups]
